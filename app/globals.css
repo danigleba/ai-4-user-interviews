@@ -2,3 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+
+@layer base {
+  button {
+    @apply text-white font-medium px-6 py-2 rounded;
+  }
+
+  .flex-box {
+    @apply flex items-center justify-center;
+  }
+}
+
