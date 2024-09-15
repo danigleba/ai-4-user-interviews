@@ -14,10 +14,10 @@ export async function POST(req) {
     const responseFormat = z.object({
       interviewee_name: z.string(),
       company: z.string(),
-      overview: z.string(),
-      problems: z.string(),
-      feedback: z.string(),
-      bugs: z.string()
+      answers: z.array(z.object({
+        question: z.string(),
+        answer: z.string()
+      }))
     })
 
     const completion = await openai.chat.completions.create({
