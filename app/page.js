@@ -1,48 +1,47 @@
 "use client"
 import { useEffect, useState, useCallback } from "react"
 import ReactMarkdown from "react-markdown"
+import supabaseAdmin from "@/utils/supabaseAdmin"
+import { v4 as uuidv4 } from "uuid"
+import Cookies from "js-cookie"
 import { useDropzone } from "react-dropzone"
+import Header from "@/components/Header"
 
 export default function Home() {
+  const [userData, setUserData] = useState(null)
   const [file, setFile] = useState(null)
   const [transcript, setTranscript] = useState("")
   const [gptResponse, setGptResponse] = useState("")
   const [isTranscribing, setIsTranscribing] = useState(false)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [problemDescription, setProblemDescription] = useState("")
-  const [targetAudience, setTargetAudience] = useState("")
   const [interviewQuestions, setInterviewQuestions] = useState([])
-  const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false)
+
+  const getAuth = async () => {
+      try {
+          const response = await fetch("/api/auth/getAuth", {
+              method: "POST",
+              headers: {
+              "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ access_token: Cookies.get("sb-access-token") })
+          })
+          const data = await response.json()
+          setUserData(data.data)
+          
+      } catch (error) {
+          console.log("Error fetching data")
+      } 
+  }
+
+  useEffect(() => {
+      getAuth()
+  }, [])
 
   const onDrop = useCallback((acceptedFiles) => {
     setFile(acceptedFiles[0])
   }, [])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
-
-  const handleGenerateQuestions = async () => {
-    if (!problemDescription || !targetAudience) return
-    
-    setIsGeneratingQuestions(true)
-    try {
-      const response = await fetch("/api/ai/generateQuestions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          problem: problemDescription,
-          audience: targetAudience
-        })
-      })
-      const data = await response.json()
-      setInterviewQuestions(data.questions)
-    } catch (error) {
-      console.error("Error generating questions:", error)
-    } finally {
-      setIsGeneratingQuestions(false)
-    }
-  }
 
   const handleTranscribe = async () => {    
     if (!file) {
@@ -59,7 +58,7 @@ export default function Home() {
         body: formData
       })
       const data = await response.json()
-      setTranscript(data.transcript)
+      await setTranscript(data.transcript)
     } catch (error) {
       console.error("Error transcribing video:", error)
     } finally {
@@ -87,12 +86,41 @@ export default function Home() {
         })
       })
       const data = await response.json()
-      console.log(JSON.parse(data.answer))
-      setGptResponse(JSON.parse(data.answer))
+      await setGptResponse(JSON.parse(data.answer))
     } catch (error) {
       console.error("Error querying GPT:", error)
     } finally {
       setIsAnalyzing(false)
+    }
+  }
+
+  const saveVideoAnalysis = async () => {
+    try {
+      const fileExt = file.path.split(".").pop()
+      const fileNameID = `/${ userData.email }/${uuidv4()}.${fileExt}`
+      const formData = new FormData()
+      formData.append("file", file)
+
+      const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+          .from("recordings")
+          .upload(fileNameID, formData, {
+              contentType: "video/mp4"
+          })
+
+      const { data: { publicUrl } } = supabaseAdmin.storage
+          .from("recordings")
+          .getPublicUrl(fileNameID)
+
+      const response = await fetch("/api/db/saveVideoAnalysis", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ transcript: transcript, gptResponse: gptResponse, publicUrl: publicUrl})
+      })
+      const data = await response.json()
+    } catch (error) {
+      console.error("Error saving transcript:", error)
     }
   }
 
@@ -103,49 +131,13 @@ export default function Home() {
   }, [transcript])
 
   useEffect(() => {
-    console.log(gptResponse.company)
+    if (gptResponse) saveVideoAnalysis()
   }, [gptResponse])
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-8">
-      <div className="bg-white rounded-xl p-8 max-w-2xl w-full border border-gray-300 mb-8">
-        <div className="flex flex-col space-y-4">
-          <input
-            type="text"
-            placeholder="Describe the problem you're solving"
-            value={problemDescription}
-            onChange={(e) => setProblemDescription(e.target.value)}
-            className="border border-gray-300 rounded-lg p-2"
-          />
-          <input
-            type="text"
-            placeholder="Who is your target audience?"
-            value={targetAudience}
-            onChange={(e) => setTargetAudience(e.target.value)}
-            className="border border-gray-300 rounded-lg p-2"
-          />
-          <button 
-            className="bg-gray-900 text-white p-2 rounded-lg"
-            onClick={handleGenerateQuestions}
-            disabled={isGeneratingQuestions || !problemDescription || !targetAudience}
-          >
-            {isGeneratingQuestions ? "Generating Questions..." : "Generate Interview Questions"}
-          </button>
-        </div>
-      </div>
-
-      {interviewQuestions.length > 0 && (
-        <div className="bg-white rounded-xl p-8 max-w-2xl w-full border border-gray-300 mb-8">
-          <h2 className="text-2xl font-bold mb-4 text-gray-900">Interview Questions</h2>
-          <ul className="list-disc pl-5 space-y-2">
-            {interviewQuestions.map((question, index) => (
-              <li key={index}>{question}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {interviewQuestions.length > 0 && (
+    <>
+      <Header userData={userData}/>
+      <div className="min-h-screen flex flex-col items-center justify-center p-8">
         <div className="bg-white rounded-xl p-8 max-w-2xl w-full border border-gray-300">
           <div className="flex flex-col space-y-6 items-center">
             <div {...getRootProps()} className="w-full cursor-pointer">
@@ -187,22 +179,22 @@ export default function Home() {
             </button>
           </div>
         </div>
-      )}
-
-      {gptResponse && (
-        <div className="mt-8 bg-white rounded-xl p-8 max-w-2xl w-full border border-gray-300">
-          <h2 className="text-2xl font-bold mb-4 text-gray-900">{gptResponse.interviewee_name}</h2>
-          <div className="space-y-6">
-            {gptResponse.company && <ReactMarkdown className="prose max-w-none">{`**Company:** ${gptResponse.company}`}</ReactMarkdown>}
-            {gptResponse.answers && gptResponse.answers.map((qa, index) => (
-              <div key={index} className="mb-4">
-                <ReactMarkdown className="prose max-w-none">{`**${qa.question}**`}</ReactMarkdown>
-                <ReactMarkdown className="prose max-w-none">{qa.answer}</ReactMarkdown>
-              </div>
-            ))}
+        {gptResponse && (
+          <div className="mt-8 bg-white rounded-xl p-8 max-w-2xl w-full border border-gray-300">
+            <h2 className="text-2xl font-bold mb-4 text-gray-900">{gptResponse.interviewee_name}</h2>
+            <div className="space-y-6">
+              {gptResponse.company && <ReactMarkdown className="prose max-w-none">{`**Company:** ${gptResponse.company}`}</ReactMarkdown>}
+              {gptResponse.answers && gptResponse.answers.map((qa, index) => (
+                <div key={index} className="mb-4">
+                  <ReactMarkdown className="prose max-w-none">{`**${qa.question}**`}</ReactMarkdown>
+                  <ReactMarkdown className="prose max-w-none">{qa.answer}</ReactMarkdown>
+                  <button className="bg-black text-white" onClick={() => saveVideoAnalysis()}>{file?.path}</button>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </>
   )
 }
