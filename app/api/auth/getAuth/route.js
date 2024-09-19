@@ -3,7 +3,7 @@ import supabaseAdmin from "@/utils/supabaseAdmin"
 
 export async function POST(req, res) {
     const { access_token } = await req.json()
-    console.log(access_token)
+
     try {
         let { data: users, error } = await supabaseAdmin
             .from("users")
