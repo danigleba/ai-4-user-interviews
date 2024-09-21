@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useState, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import ReactMarkdown from "react-markdown"
 import supabaseAdmin from "@/utils/supabaseAdmin"
 import { v4 as uuidv4 } from "uuid"
@@ -8,13 +9,22 @@ import { useDropzone } from "react-dropzone"
 import Header from "@/components/Header"
 
 export default function Home() {
+  const router = useRouter()
   const [userData, setUserData] = useState(null)
+  const [userCalls, setUserCalls] = useState([])
   const [file, setFile] = useState(null)
   const [transcript, setTranscript] = useState("")
   const [gptResponse, setGptResponse] = useState("")
   const [isTranscribing, setIsTranscribing] = useState(false)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [interviewQuestions, setInterviewQuestions] = useState([])
+
+  const onDrop = useCallback((acceptedFiles) => {
+    setFile(acceptedFiles[0])
+  }, [])
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
+
 
   const getAuth = async () => {
       try {
@@ -33,15 +43,21 @@ export default function Home() {
       } 
   }
 
-  useEffect(() => {
-      getAuth()
-  }, [])
-
-  const onDrop = useCallback((acceptedFiles) => {
-    setFile(acceptedFiles[0])
-  }, [])
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
+  const getUserPosts = async () => {
+    try {
+      const response = await fetch("/api/db/getUserCalls", {
+          method: "POST",
+          headers: {
+          "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userId: userData?.uuid })
+      })
+      const data = await response.json()
+      setUserCalls(data.data)      
+  } catch (error) {
+      console.log("Error fetching data")
+  } 
+  }
 
   const handleTranscribe = async () => {    
     if (!file) {
@@ -82,7 +98,7 @@ export default function Home() {
         },
         body: JSON.stringify({
           prompt: customPrompt,
-          transcript: transcript
+          transcript: transcript,
         })
       })
       const data = await response.json()
@@ -116,13 +132,21 @@ export default function Home() {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ transcript: transcript, gptResponse: gptResponse, publicUrl: publicUrl})
+        body: JSON.stringify({ transcript: transcript, gptResponse: gptResponse, publicUrl: publicUrl, userId: userData.uuid, callName: gptResponse.call_name})
       })
       const data = await response.json()
     } catch (error) {
       console.error("Error saving transcript:", error)
     }
   }
+
+  useEffect(() => {
+    getAuth()
+  }, [])
+
+  useEffect(() => {
+    if (userData) getUserPosts()
+  }, [userData])
 
   useEffect(() => {
     if (transcript) {
@@ -133,11 +157,26 @@ export default function Home() {
   useEffect(() => {
     if (gptResponse) saveVideoAnalysis()
   }, [gptResponse])
-
   return (
     <>
       <Header userData={userData}/>
-      <div className="min-h-screen flex flex-col items-center justify-center p-8">
+      <div className="min-h-screen flex flex-col items-center justify-start p-8 space-y-12">
+        {userCalls && (
+          <div className="bg-white rounded-xl p-8 w-full">
+            <h2 className="text-2xl font-bold mb-4 text-gray-900">Your Interviews</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {userCalls.map((call, index) => (
+                <div onClick={() => router.push(`/user/${userData?.uuid}/call/${call?.id}`)} key={index} className="mb-4 border border-gray-300 rounded-xl p-4 cursor-pointer hover:scale-105 transition-all duration-300">
+                  <ReactMarkdown className="">{`**${call?.name}**`}</ReactMarkdown>
+                  <video className="w-full h-auto rounded-lg mt-2" preload="metadata">
+                    <source src={call?.video_url} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="bg-white rounded-xl p-8 max-w-2xl w-full border border-gray-300">
           <div className="flex flex-col space-y-6 items-center">
             <div {...getRootProps()} className="w-full cursor-pointer">

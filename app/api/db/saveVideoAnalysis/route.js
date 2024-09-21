@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server"
 import supabaseAdmin from "@/utils/supabaseAdmin"
-import { v4 as uuidv4 } from "uuid"
 
 export async function POST(req) {
-    const { transcript, gptResponse, publicUrl } = await req.json()
+    const { transcript, gptResponse, publicUrl, userId, callName } = await req.json()
 
     try {
         const { data, error } = await supabaseAdmin
@@ -12,7 +11,9 @@ export async function POST(req) {
                 {
                     transcript: transcript,
                     analysis: gptResponse,
-                    video_url: publicUrl
+                    video_url: publicUrl,
+                    user: userId,
+                    name: callName
                 }
             ])
 

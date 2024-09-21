@@ -13,6 +13,7 @@ export async function POST(req) {
 
     const responseFormat = z.object({
       interviewee_name: z.string(),
+      call_name: z.string(),
       company: z.string(),
       answers: z.array(z.object({
         question: z.string(),
