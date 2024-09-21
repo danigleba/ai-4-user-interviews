@@ -135,6 +135,7 @@ export default function Home() {
         body: JSON.stringify({ transcript: transcript, gptResponse: gptResponse, publicUrl: publicUrl, userId: userData.uuid, callName: gptResponse.call_name})
       })
       const data = await response.json()
+      getUserPosts()
     } catch (error) {
       console.error("Error saving transcript:", error)
     }
@@ -160,77 +161,87 @@ export default function Home() {
   return (
     <>
       <Header userData={userData}/>
-      <div className="min-h-screen flex flex-col items-center justify-start p-8 space-y-12">
+      <div className="max-w-4xl mx-auto px-4 py-8">
         {userCalls && (
-          <div className="bg-white rounded-xl p-8 w-full">
-            <h2 className="text-2xl font-bold mb-4 text-gray-900">Your Interviews</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold mb-6 text-gray-900">User Calls</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {userCalls.map((call, index) => (
-                <div onClick={() => router.push(`/user/${userData?.uuid}/call/${call?.id}`)} key={index} className="mb-4 border border-gray-300 rounded-xl p-4 cursor-pointer hover:scale-105 transition-all duration-300">
-                  <ReactMarkdown className="">{`**${call?.name}**`}</ReactMarkdown>
-                  <video className="w-full h-auto rounded-lg mt-2" preload="metadata">
-                    <source src={call?.video_url} type="video/mp4" />
-                    Your browser does not support the video tag.
-                  </video>
+                <div 
+                  key={index} 
+                  onClick={() => router.push(`/user/${userData?.uuid}/call/${call?.id}`)} 
+                  className="border border-gray-200 rounded-lg p-3 cursor-pointer hover:bg-gray-100 transition-all duration-300 shadow-sm hover:shadow-md space-y-3"
+                >
+                  <div className="relative pt-[56.25%]">
+                    <video 
+                      className="absolute top-0 left-0 w-full h-full object-cover rounded-md"
+                      muted
+                      playsInline
+                      onMouseEnter={(e) => {
+                        e.target.currentTime = 0
+                        e.target.play()
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.pause()
+                      }}
+                      onEnded={(e) => {
+                        e.target.pause()
+                        e.target.currentTime = 0
+                      }}
+                    >
+                      <source src={`${call?.video_url}#t=0,5`} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
+                  </div>
+                  <div className="flex flex-col">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h3 className="font-bold text-xl text-gray-800">{call?.analysis?.interviewee_name}</h3>
+                        <h3 className="font-light text-sm text-gray-800">{call?.analysis?.company}</h3>
+                      </div>
+                      <p className="flex-box gap-1">
+                        expand
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </p>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         )}
-        <div className="bg-white rounded-xl p-8 max-w-2xl w-full border border-gray-300">
-          <div className="flex flex-col space-y-6 items-center">
-            <div {...getRootProps()} className="w-full cursor-pointer">
-              <h2 className="text-xl font-bold mb-4 text-gray-900">Upload Interview Video</h2>
-              <input {...getInputProps()} />
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                {isDragActive ? (
-                  <p>Drop the file here ...</p>
-                ) : (
-                  <p>Drag and drop a file here, or click to select a file</p>
-                )}
-              </div>
-            </div>
-            {file && <p className="text-sm text-gray-600">Selected file: {file.name}</p>}
-            <button 
-              className="bg-gray-900 text-white" 
-              onClick={handleTranscribe}
-              disabled={isTranscribing || isAnalyzing || !file}
-            >
-              {isTranscribing ? (
-                <div className="flex-box">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Transcribing
-                </div>
-              ) : isAnalyzing ? (
-                <div className="flex-box">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Analyzing
-                </div>
-              ) : (
-                "Analyze Interview"
-              )}
-            </button>
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold mb-6 text-gray-900">Upload Interview Video</h2>
+          <div {...getRootProps()} className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer">
+            <input {...getInputProps()} />
+            {isDragActive ? (
+              <p>Drop the file here ...</p>
+            ) : (
+              <p>Drag and drop a file here, or click to select a file</p>
+            )}
           </div>
+          {file && <p className="mt-2 text-sm text-gray-600">Selected file: {file.name}</p>}
+          <button 
+            className="mt-4 px-4 py-2 bg-gray-900 text-white rounded hover:bg-gray-800 transition-colors duration-200" 
+            onClick={handleTranscribe}
+            disabled={isTranscribing || isAnalyzing || !file}
+          >
+            {isTranscribing ? "Transcribing..." : isAnalyzing ? "Analyzing..." : "Analyze Interview"}
+          </button>
         </div>
+        
         {gptResponse && (
-          <div className="mt-8 bg-white rounded-xl p-8 max-w-2xl w-full border border-gray-300">
+          <div className="border border-gray-200 rounded-lg p-6">
             <h2 className="text-2xl font-bold mb-4 text-gray-900">{gptResponse.interviewee_name}</h2>
-            <div className="space-y-6">
-              {gptResponse.company && <ReactMarkdown className="prose max-w-none">{`**Company:** ${gptResponse.company}`}</ReactMarkdown>}
-              {gptResponse.answers && gptResponse.answers.map((qa, index) => (
-                <div key={index} className="mb-4">
-                  <ReactMarkdown className="prose max-w-none">{`**${qa.question}**`}</ReactMarkdown>
-                  <ReactMarkdown className="prose max-w-none">{qa.answer}</ReactMarkdown>
-                  <button className="bg-black text-white" onClick={() => saveVideoAnalysis()}>{file?.path}</button>
-                </div>
-              ))}
-            </div>
+            {gptResponse.company && <p className="mb-4"><strong>Company:</strong> {gptResponse.company}</p>}
+            {gptResponse.answers && gptResponse.answers.map((qa, index) => (
+              <div key={index} className="mb-6">
+                <h3 className="font-semibold mb-2">{qa.question}</h3>
+                <p className="text-gray-700">{qa.answer}</p>
+              </div>
+            ))}
           </div>
         )}
       </div>

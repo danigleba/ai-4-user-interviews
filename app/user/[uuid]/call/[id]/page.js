@@ -59,40 +59,54 @@ export default function Home() {
   return (
     <>
         <Header userData={userData}/>
-        <div className="min-h-screen flex flex-col items-center justify-start p-8 space-y-12">
-            <div className="bg-white rounded-xl p-8 w-full">
-                {call && (
-                    <div className="flex flex-col md:flex-row">
-                        <div className="md:w-1/2 pr-4">
-                            <h2 className="text-2xl font-bold mb-4 text-gray-900">{call?.name}</h2>
+        <div className="max-w-4xl mx-auto px-4 py-8">
+            {call && (
+                <div className="space-y-8">
+                    <div className="border-b pb-4">
+                        <h1 className="text-3xl font-bold text-gray-900">{call?.name}</h1>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div className="space-y-4">
+                            <h2 className="text-xl font-semibold mb-4 text-gray-800">Video Interview</h2>
                             {call?.video_url && (
-                                <video className="w-full h-auto rounded-lg mt-2 bg-black" controls>
-                                    <source src={call?.video_url} type="video/mp4" />
-                                    Your browser does not support the video tag.
-                                </video>
+                                <div className="aspect-w-16 aspect-h-9">
+                                    <video className="w-full h-full rounded-lg shadow-lg" controls>
+                                        <source src={call?.video_url} type="video/mp4" />
+                                        Your browser does not support the video tag.
+                                    </video>
+                                </div>
                             )}
-                            
-                            <div className="mt-4">
-                                <h3 className="text-xl font-bold mb-2 text-gray-900">Transcript</h3>
-                                <p className="text-gray-700">{call?.transcript}</p>
-                            </div>
+                            <details className="bg-white rounded-lg shadow">
+                                <summary className="cursor-pointer p-4 font-semibold text-gray-800">Show Transcript</summary>
+                                <div className="p-4">
+                                    <p className="text-gray-700 whitespace-pre-wrap">{call?.transcript}</p>
+                                </div>
+                            </details>
                         </div>
-                        <div className="md:w-1/2 pl-4 mt-4 md:mt-0">
-                            <h3 className="text-xl font-bold mb-2 text-gray-900">Analysis</h3>
-                            <ReactMarkdown className="prose max-w-none">{call?.analysis?.company}</ReactMarkdown>
-                            <ReactMarkdown className="prose max-w-none">{call?.analysis?.interviewee_name}</ReactMarkdown>
-                            <div className="space-y-4">
-                                {call?.analysis && call?.analysis?.answers.map((qa, index) => (
-                                    <div key={index} className="mb-4">
-                                        <p className="font-bold text-gray-900">{qa.question}</p>
-                                        <p className="text-gray-700">{qa.answer}</p>
-                                    </div>
-                                ))}
+                        
+                        <div>
+                            <h2 className="text-xl font-semibold mb-4 text-gray-800">Interview Details</h2>
+                            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                                <p><span className="font-medium">Company:</span> <ReactMarkdown className="inline">{call?.analysis?.company}</ReactMarkdown></p>
+                                <p><span className="font-medium">Interviewee:</span> <ReactMarkdown className="inline">{call?.analysis?.interviewee_name}</ReactMarkdown></p>
                             </div>
                         </div>
                     </div>
-                )}
-            </div>
+                    
+                    <div>
+                        <h2 className="text-xl font-semibold mb-4 text-gray-800">Analysis</h2>
+                        <div className="space-y-6">
+                            {call?.analysis && call?.analysis?.answers.map((qa, index) => (
+                                <div key={index} className="bg-white rounded-lg shadow p-4">
+                                    <h3 className="font-medium text-gray-900 mb-2">{qa.question}</h3>
+                                    <p className="text-gray-700">{qa.answer}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     </>
   )

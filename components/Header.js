@@ -2,19 +2,19 @@ import Image from "next/image"
 
 export default function Header({ userData }) {
   return (
-    <header className="bg-white shadow-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Interview Analyzer</h1>
+    <header className="bg-white border-b border-gray-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+        <a href="/" className="text-xl font-bold text-gray-800">User Talk</a>
         {userData && (
-          <div className="flex items-center space-x-4">
-            <span className="text-gray-700">{userData.email}</span>
+          <div className="flex items-center space-x-3">
+            <span className="text-sm text-gray-600">{userData.email}</span>
             {userData.user_metadata?.avatar_url && (
               <Image
-                src={user.user_metadata.avatar_url}
+                src={userData.user_metadata.avatar_url}
                 alt="Profile"
-                width={40}
-                height={40}
-                className="rounded-full"
+                width={32}
+                height={32}
+                className="rounded-full border border-gray-200"
               />
             )}
           </div>
