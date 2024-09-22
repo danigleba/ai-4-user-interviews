@@ -59,53 +59,49 @@ export default function Home() {
   return (
     <>
         <Header userData={userData}/>
-        <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="w-full mx-auto px-4 md:px-24 py-8 space-y-6">
             {call && (
-                <div className="space-y-8">
-                    <div className="border-b pb-4">
-                        <h1 className="text-3xl font-bold text-gray-900">{call?.name}</h1>
+                <>
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900">{call?.analysis?.interviewee_name}</h1>
+                        <p className="text-gray-500">At {call?.analysis?.company}</p>
                     </div>
-                    
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div className="space-y-4">
-                            <h2 className="text-xl font-semibold mb-4 text-gray-800">Video Interview</h2>
-                            {call?.video_url && (
-                                <div className="aspect-w-16 aspect-h-9">
-                                    <video className="w-full h-full rounded-lg shadow-lg" controls>
-                                        <source src={call?.video_url} type="video/mp4" />
-                                        Your browser does not support the video tag.
-                                    </video>
+                    <div className="flex items-start w-full gap-12">
+                        <div className="w-full">
+                            <div className="space-y-4 w-full">
+                                {call?.video_url && (
+                                    <div className="w-full">
+                                        <video className="w-full h-full rounded-2xl" controls>
+                                            <source src={call?.video_url} type="video/mp4" />
+                                            Your browser does not support the video tag.
+                                        </video>
+                                    </div>
+                                )}
+                                <div className="border border-gray-200 rounded-2xl p-6 max-h-[calc(100vh-100px)] overflow-y-auto">
+                                    <ReactMarkdown 
+                                    className="text-gray-700 font-base whitespace-pre-wrap"
+                                    components={{
+                                        p: ({ children }) => <p className="">{children}</p>
+                                    }}
+                                    >
+                                    {call?.transcript?.replace(/\n/g, "\n\n")}
+                                    </ReactMarkdown>
                                 </div>
-                            )}
-                            <details className="bg-white rounded-lg shadow">
-                                <summary className="cursor-pointer p-4 font-semibold text-gray-800">Show Transcript</summary>
-                                <div className="p-4">
-                                    <p className="text-gray-700 whitespace-pre-wrap">{call?.transcript}</p>
-                                </div>
-                            </details>
+                            </div>
                         </div>
-                        
-                        <div>
-                            <h2 className="text-xl font-semibold mb-4 text-gray-800">Interview Details</h2>
-                            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                                <p><span className="font-medium">Company:</span> <ReactMarkdown className="inline">{call?.analysis?.company}</ReactMarkdown></p>
-                                <p><span className="font-medium">Interviewee:</span> <ReactMarkdown className="inline">{call?.analysis?.interviewee_name}</ReactMarkdown></p>
+                        <div className="w-full max-w-2xl mx-auto">
+                            <h2 className="text-xl font-extrabold mb-4 text-gray-800">Q&A</h2>
+                            <div className="space-y-4">
+                                {call?.analysis?.answers?.map((qa, index) => (
+                                    <div key={index} className="border-b border-gray-200 pb-4">
+                                        <h3 className="text-base font-semibold text-gray-900 mb-2">{qa.question}</h3>
+                                        <p className="text-sm text-gray-700">{qa.answer}</p>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>
-                    
-                    <div>
-                        <h2 className="text-xl font-semibold mb-4 text-gray-800">Analysis</h2>
-                        <div className="space-y-6">
-                            {call?.analysis && call?.analysis?.answers.map((qa, index) => (
-                                <div key={index} className="bg-white rounded-lg shadow p-4">
-                                    <h3 className="font-medium text-gray-900 mb-2">{qa.question}</h3>
-                                    <p className="text-gray-700">{qa.answer}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
+                </>
             )}
         </div>
     </>

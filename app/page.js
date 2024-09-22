@@ -161,24 +161,27 @@ export default function Home() {
   return (
     <>
       <Header userData={userData}/>
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="w-full mx-auto px-4 md:px-24 py-8">
         {userCalls && (
-          <div className="mb-12">
-            <h2 className="text-2xl font-bold mb-6 text-gray-900">User Calls</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="mb-12 space-y-6">
+            <div className="flex flex-col">
+              <h2 className="text-2xl font-extrabold text-gray-900">My Calls</h2>
+              <p className="text-gray-600">These are all the calls recorded by you</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {userCalls.map((call, index) => (
                 <div 
                   key={index} 
                   onClick={() => router.push(`/user/${userData?.uuid}/call/${call?.id}`)} 
-                  className="border border-gray-200 rounded-lg p-3 cursor-pointer hover:bg-gray-100 transition-all duration-300 shadow-sm hover:shadow-md space-y-3"
+                  className="rounded-lg cursor-pointer transition-all duration-300 space-y-3"
                 >
-                  <div className="relative pt-[56.25%]">
+                  <div className="relative pt-[56.25%] hover:shadow-md ">
                     <video 
                       className="absolute top-0 left-0 w-full h-full object-cover rounded-md"
                       muted
                       playsInline
                       onMouseEnter={(e) => {
-                        e.target.currentTime = 0
+                        e.target.currentTime = 1
                         e.target.play()
                       }}
                       onMouseLeave={(e) => {
@@ -186,10 +189,10 @@ export default function Home() {
                       }}
                       onEnded={(e) => {
                         e.target.pause()
-                        e.target.currentTime = 0
+                        e.target.currentTime = 1
                       }}
                     >
-                      <source src={`${call?.video_url}#t=0,5`} type="video/mp4" />
+                      <source src={`${call?.video_url}#t=1,6`} type="video/mp4" />
                       Your browser does not support the video tag.
                     </video>
                   </div>
@@ -200,9 +203,8 @@ export default function Home() {
                         <h3 className="font-light text-sm text-gray-800">{call?.analysis?.company}</h3>
                       </div>
                       <p className="flex-box gap-1">
-                        expand
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7-7 7M5 12h16" />
                         </svg>
                       </p>
                     </div>
@@ -213,7 +215,7 @@ export default function Home() {
           </div>
         )}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-6 text-gray-900">Upload Interview Video</h2>
+          <h2 className="text-2xl font-bold mb-6 text-gray-900">Add a new Call</h2>
           <div {...getRootProps()} className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer">
             <input {...getInputProps()} />
             {isDragActive ? (
@@ -224,14 +226,13 @@ export default function Home() {
           </div>
           {file && <p className="mt-2 text-sm text-gray-600">Selected file: {file.name}</p>}
           <button 
-            className="mt-4 px-4 py-2 bg-gray-900 text-white rounded hover:bg-gray-800 transition-colors duration-200" 
+            className="mt-4 px-4 py-2 bg-gray-900 text-white rounded hover:bg-gray-800 transition-colors duration-200 cursor-pointer" 
             onClick={handleTranscribe}
             disabled={isTranscribing || isAnalyzing || !file}
           >
-            {isTranscribing ? "Transcribing..." : isAnalyzing ? "Analyzing..." : "Analyze Interview"}
+            {isTranscribing ? "Transcribing..." : isAnalyzing ? "Analyzing..." : "Analyze Call"}
           </button>
         </div>
-        
         {gptResponse && (
           <div className="border border-gray-200 rounded-lg p-6">
             <h2 className="text-2xl font-bold mb-4 text-gray-900">{gptResponse.interviewee_name}</h2>
