@@ -1,30 +1,15 @@
 "use client"
 import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import ReactMarkdown from "react-markdown"
-import supabaseAdmin from "@/utils/supabaseAdmin"
-import { v4 as uuidv4 } from "uuid"
+
 import Cookies from "js-cookie"
-import { useDropzone } from "react-dropzone"
 import Header from "@/components/Header"
+import NewCallModal from "@/components/NewCallModal"
 
 export default function Home() {
   const router = useRouter()
   const [userData, setUserData] = useState(null)
   const [userCalls, setUserCalls] = useState([])
-  const [file, setFile] = useState(null)
-  const [transcript, setTranscript] = useState("")
-  const [gptResponse, setGptResponse] = useState("")
-  const [isTranscribing, setIsTranscribing] = useState(false)
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [interviewQuestions, setInterviewQuestions] = useState([])
-
-  const onDrop = useCallback((acceptedFiles) => {
-    setFile(acceptedFiles[0])
-  }, [])
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
-
 
   const getAuth = async () => {
       try {
@@ -59,88 +44,6 @@ export default function Home() {
   } 
   }
 
-  const handleTranscribe = async () => {    
-    if (!file) {
-      console.error("No file selected")
-      return
-    }
-
-    setIsTranscribing(true)
-    const formData = new FormData()
-    formData.append("file", file)
-    try {
-      const response = await fetch("/api/transcribe", {
-        method: "POST",
-        body: formData
-      })
-      const data = await response.json()
-      await setTranscript(data.transcript)
-    } catch (error) {
-      console.error("Error transcribing video:", error)
-    } finally {
-      setIsTranscribing(false)
-    }
-  }
-
-  const handleGptQuery = async () => {
-    if (!transcript) return
-    const customPrompt = `Analyze this video transcript of a user interview for a software product and provide the following answers to these questions:
-    ${interviewQuestions.join("\n")}
-    
-    Please structure your response clearly with these questions and answers.`
-    
-    setIsAnalyzing(true)
-    try {
-      const response = await fetch("/api/ai/summarize", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          prompt: customPrompt,
-          transcript: transcript,
-        })
-      })
-      const data = await response.json()
-      await setGptResponse(JSON.parse(data.answer))
-    } catch (error) {
-      console.error("Error querying GPT:", error)
-    } finally {
-      setIsAnalyzing(false)
-    }
-  }
-
-  const saveVideoAnalysis = async () => {
-    try {
-      const fileExt = file.path.split(".").pop()
-      const fileNameID = `/${ userData.email }/${uuidv4()}.${fileExt}`
-      const formData = new FormData()
-      formData.append("file", file)
-
-      const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
-          .from("recordings")
-          .upload(fileNameID, formData, {
-              contentType: "video/mp4"
-          })
-
-      const { data: { publicUrl } } = supabaseAdmin.storage
-          .from("recordings")
-          .getPublicUrl(fileNameID)
-
-      const response = await fetch("/api/db/saveVideoAnalysis", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ transcript: transcript, gptResponse: gptResponse, publicUrl: publicUrl, userId: userData.uuid, callName: gptResponse.call_name})
-      })
-      const data = await response.json()
-      getUserPosts()
-    } catch (error) {
-      console.error("Error saving transcript:", error)
-    }
-  }
-
   useEffect(() => {
     getAuth()
   }, [])
@@ -148,19 +51,10 @@ export default function Home() {
   useEffect(() => {
     if (userData) getUserPosts()
   }, [userData])
-
-  useEffect(() => {
-    if (transcript) {
-      handleGptQuery()
-    }
-  }, [transcript])
-
-  useEffect(() => {
-    if (gptResponse) saveVideoAnalysis()
-  }, [gptResponse])
   return (
     <>
       <Header userData={userData}/>
+      <NewCallModal userData={userData} getUserPosts={getUserPosts}/>
       <div className="w-full mx-auto px-4 md:px-24 py-8">
         {userCalls && (
           <div className="mb-12 space-y-6">
@@ -215,36 +109,14 @@ export default function Home() {
           </div>
         )}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-6 text-gray-900">Add a new Call</h2>
-          <div {...getRootProps()} className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer">
-            <input {...getInputProps()} />
-            {isDragActive ? (
-              <p>Drop the file here ...</p>
-            ) : (
-              <p>Drag and drop a file here, or click to select a file</p>
-            )}
+          <div className="flex-box flex-col text-center gap-6">
+            <div className="space-y-3">
+              <p className="text-2xl font-bold text-gray-900">Upload a new Call</p>
+              <p className="text-gray-600 font-medium">When you upload a new call, it will be transcribed and analyzed to provide valuable insights.</p>
+            </div>
+            <button onClick={() => document.getElementById("newCall").showModal()} className="button-primary w-max">Upload Call</button>
           </div>
-          {file && <p className="mt-2 text-sm text-gray-600">Selected file: {file.name}</p>}
-          <button 
-            className="mt-4 px-4 py-2 bg-gray-900 text-white rounded hover:bg-gray-800 transition-colors duration-200 cursor-pointer" 
-            onClick={handleTranscribe}
-            disabled={isTranscribing || isAnalyzing || !file}
-          >
-            {isTranscribing ? "Transcribing..." : isAnalyzing ? "Analyzing..." : "Analyze Call"}
-          </button>
         </div>
-        {gptResponse && (
-          <div className="border border-gray-200 rounded-lg p-6">
-            <h2 className="text-2xl font-bold mb-4 text-gray-900">{gptResponse.interviewee_name}</h2>
-            {gptResponse.company && <p className="mb-4"><strong>Company:</strong> {gptResponse.company}</p>}
-            {gptResponse.answers && gptResponse.answers.map((qa, index) => (
-              <div key={index} className="mb-6">
-                <h3 className="font-semibold mb-2">{qa.question}</h3>
-                <p className="text-gray-700">{qa.answer}</p>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     </>
   )

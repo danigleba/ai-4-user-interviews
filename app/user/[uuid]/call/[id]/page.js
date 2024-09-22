@@ -4,6 +4,7 @@ import { useRouter, useParams } from "next/navigation"
 import ReactMarkdown from "react-markdown"
 import Cookies from "js-cookie"
 import Header from "@/components/Header"
+import NewCallModal from "@/components/NewCallModal"
 
 export default function Home() {
   const router = useRouter()
@@ -59,6 +60,7 @@ export default function Home() {
   return (
     <>
         <Header userData={userData}/>
+        <NewCallModal userData={userData} getUserPosts={getUserPosts}/>
         <div className="w-full mx-auto px-4 md:px-24 py-8 space-y-6">
             {call && (
                 <>

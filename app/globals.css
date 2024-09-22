@@ -13,7 +13,7 @@
   }
 
   .button-primary {
-    @apply bg-gray-800 hover:bg-gray-900;
+    @apply bg-gray-800 hover:bg-gray-900 py-1.5 px-6 font-medium;
   }
 }
 
