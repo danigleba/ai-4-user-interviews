@@ -147,7 +147,7 @@ export default function NewCallModal({ userData, getUserPosts }) {
                     </div>
                 }
                 <button 
-                    className={`${!file ? "bg-gray-200 text-gray-400 cursor-default" : "bg-gray-900 text-white hover:bg-gray-800 cursor-pointer"} px-4 py-2 rounded transition-colors duration-200 flex items-center`} 
+                    className={`${!file ? "hidden" : "bg-gray-900 text-white hover:bg-gray-800 cursor-pointer"} px-4 py-2 rounded transition-colors duration-200 flex items-center`} 
                     onClick={handleTranscribe}
                     disabled={isTranscribing || isAnalyzing || !file}
                 >
