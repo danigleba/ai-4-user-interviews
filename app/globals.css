@@ -5,15 +5,19 @@
 
 @layer base {
   button {
-    @apply text-white font-medium px-6 py-2 rounded cursor-pointer;
+    @apply text-white font-medium px-6 py-2 rounded-md cursor-pointer;
   }
 
+  span {
+    @apply font-medium;
+  }
+  
   .flex-box {
     @apply flex items-center justify-center;
   }
 
   .button-primary {
-    @apply bg-gray-800 hover:bg-gray-900 py-1.5 px-6 font-medium;
+    @apply bg-[#1e6e7a] font-semibold py-1.5 px-6;
   }
 }
 

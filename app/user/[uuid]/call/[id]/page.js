@@ -14,16 +14,16 @@ export default function Home() {
 
   const getAuth = async () => {
       try {
-          const response = await fetch("/api/auth/getAuth", {
-              method: "POST",
-              headers: {
-              "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ access_token: Cookies.get("sb-access-token") })
-          })
-          const data = await response.json()
-          setUserData(data.data)
-          
+            const response = await fetch("/api/auth/getAuth", {
+                method: "POST",
+                headers: {
+                "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ access_token: Cookies.get("sb-access-token") })
+            })
+            const data = await response.json()
+            if (data.data) setUserData(data.data)
+            else router.push("/login")  
       } catch (error) {
           console.log("Error fetching data")
       } 
@@ -61,14 +61,14 @@ export default function Home() {
     <>
         <Header userData={userData}/>
         <NewCallModal userData={userData} getUserPosts={getUserPosts}/>
-        <div className="w-full mx-auto px-4 md:px-24 py-8 space-y-6">
+        <div className="bg-[#F5F5F2] w-full mx-auto px-4 md:px-6 py-8 space-y-6 pb-24">
             {call && (
                 <>
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">{call?.analysis?.interviewee_name}</h1>
                         <p className="text-gray-500">At {call?.analysis?.company}</p>
                     </div>
-                    <div className="flex items-start w-full gap-12">
+                    <div className="flex flex-col md:flex-row items-start w-full gap-12">
                         <div className="w-full">
                             <div className="space-y-4 w-full">
                                 {call?.video_url && (
@@ -79,9 +79,9 @@ export default function Home() {
                                         </video>
                                     </div>
                                 )}
-                                <div className="border border-gray-200 rounded-2xl p-6 max-h-[calc(100vh-100px)] overflow-y-auto">
+                                <div className="bg-white  rounded-2xl p-6 max-h-96 md:max-h-[calc(100vh-100px)] overflow-y-auto">
                                     <ReactMarkdown 
-                                    className="text-gray-700 font-base whitespace-pre-wrap"
+                                    className="text-gray-700 font-base whitespace-pre-wrap md:p-3"
                                     components={{
                                         p: ({ children }) => <p className="">{children}</p>
                                     }}
@@ -95,8 +95,8 @@ export default function Home() {
                             <h2 className="text-xl font-extrabold mb-4 text-gray-800">Q&A</h2>
                             <div className="space-y-4">
                                 {call?.analysis?.answers?.map((qa, index) => (
-                                    <div key={index} className="border-b border-gray-200 pb-4">
-                                        <h3 className="text-base font-semibold text-gray-900 mb-2">{qa.question}</h3>
+                                    <div key={index} className="bg-white px-6 py-3 rounded-xl space-y-1">
+                                        <h3 className="text-base font-semibold text-gray-900">{qa.question}</h3>
                                         <p className="text-sm text-gray-700">{qa.answer}</p>
                                     </div>
                                 ))}

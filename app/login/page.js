@@ -21,7 +21,7 @@ export default function Login() {
             })
             const data = await response.json()
             if (data) {
-                Cookies.set("sb-access-token", data.data.user.id, {expires: 30})            
+                Cookies.set("sb-access-token", data.data.user.id, {expires: 30})   
                 router.push("/")
             }
         } catch (error) {
@@ -30,38 +30,43 @@ export default function Login() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-white py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8">
-                <h2 className="text-2xl font-bold mb-4 text-gray-900">Sign in to your account</h2>
-                <form className="space-y-4" onSubmit={(e) => login(e)}>
-                    <div>
-                        <input
-                            id="email-address"
-                            name="email"
-                            type="email"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                            placeholder="Email address"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                    </div>
-                    <div>
-                        <input
-                            id="password"
-                            name="password"
-                            type="password"
-                            autoComplete="current-password"
-                            required
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                            placeholder="Password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
+        <div className="bg-[#F5F5F2] min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-md w-full space-y-3">
+                <div href="/" className="text-xl font-bold text-gray-800 w-full text-center pb-6">🙊 User Talk</div>
+                <h2 className="text-3xl font-bold text-gray-900 text-center w-full">Login</h2>
+                <form className="space-y-6" onSubmit={(e) => login(e)}>
+                    <div className="space-y-3">
+                        <div className="space-y-1">
+                            <span>Email</span>
+                            <input
+                                id="email-address"
+                                name="email"
+                                type="email"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                placeholder="example@email.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <span>Password</span>
+                            <input
+                                id="password"
+                                name="password"
+                                type="password"
+                                autoComplete="current-password"
+                                required
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                placeholder="********"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
+                        </div>
                     </div>
                     <div>
                         <button
                             type="submit"
-                            className="w-full py-2 px-4 bg-gray-900 text-white rounded-md">
+                            className="button-primary w-full py-2 px-4 rounded-md">
                             Sign in
                         </button>
                     </div>

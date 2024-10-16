@@ -1,7 +1,6 @@
 "use client"
 import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
-
 import Cookies from "js-cookie"
 import Header from "@/components/Header"
 import NewCallModal from "@/components/NewCallModal"
@@ -21,8 +20,8 @@ export default function Home() {
               body: JSON.stringify({ access_token: Cookies.get("sb-access-token") })
           })
           const data = await response.json()
-          setUserData(data.data)
-          
+          if (data.data) setUserData(data.data)
+          else router.push("/login")
       } catch (error) {
           console.log("Error fetching data")
       } 
@@ -55,7 +54,7 @@ export default function Home() {
     <>
       <Header userData={userData}/>
       <NewCallModal userData={userData} getUserPosts={getUserPosts}/>
-      <div className="w-full mx-auto px-4 md:px-24 py-8">
+      <div className="bg-[#F5F5F2] w-full mx-auto px-4 md:px-6 py-8 pb-24">
         {userCalls && (
           <div className="mb-12 space-y-6">
             <div className="flex flex-col">
@@ -67,11 +66,11 @@ export default function Home() {
                 <div 
                   key={index} 
                   onClick={() => router.push(`/user/${userData?.uuid}/call/${call?.id}`)} 
-                  className="rounded-lg cursor-pointer transition-all duration-300 space-y-3"
+                  className="rounded-2xl cursor-pointer space-y-3 hover:bg-white p-3"
                 >
-                  <div className="relative pt-[56.25%] hover:shadow-md ">
+                  <div className="relative pt-[56.25%]">
                     <video 
-                      className="absolute top-0 left-0 w-full h-full object-cover rounded-md"
+                      className="absolute top-0 left-0 w-full h-full object-cover rounded-xl"
                       muted
                       playsInline
                       onMouseEnter={(e) => {
@@ -96,11 +95,6 @@ export default function Home() {
                         <h3 className="font-bold text-xl text-gray-800">{call?.analysis?.interviewee_name}</h3>
                         <h3 className="font-light text-sm text-gray-800">{call?.analysis?.company}</h3>
                       </div>
-                      <p className="flex-box gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7-7 7M5 12h16" />
-                        </svg>
-                      </p>
                     </div>
                   </div>
                 </div>
@@ -108,13 +102,13 @@ export default function Home() {
             </div>
           </div>
         )}
-        <div className="mb-12">
+        <div className="bg-white py-12 rounded-xl">
           <div className="flex-box flex-col text-center gap-6">
             <div className="space-y-3">
               <p className="text-2xl font-bold text-gray-900">Upload a new Call</p>
-              <p className="text-gray-600 font-medium">When you upload a new call, it will be transcribed and analyzed to provide valuable insights.</p>
+              <p className="text-gray-600 font-medium">Upload the mp4 file of your call to get it's AI analysis, Q&As and transcript.</p>
             </div>
-            <button onClick={() => document.getElementById("newCall").showModal()} className="button-primary w-max">Upload Call</button>
+            <button onClick={() => document.getElementById("newCall").showModal()} className="button-primary w-max">Add Call</button>
           </div>
         </div>
       </div>
